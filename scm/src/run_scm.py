@@ -34,7 +34,10 @@ DEFAULT_BIN_DIR = 'scm/bin'
 
 # Default command string to run MPI apps (number of processes should be 1 since SCM is not set up to use more than 1 yet)
 DEFAULT_MPI_COMMAND = 'mpirun -np 1'
-
+# If running on Derecho, mpirun/mpiexec will not work from login nodes,
+#   defaulting to not use them
+if 'derecho' in os.environ.get('HOST', '').lower():
+    DEFAULT_MPI_COMMAND = ''
 
 # Copy executable to run directory if true (otherwise it will be linked)
 COPY_EXECUTABLE = False
@@ -467,7 +470,7 @@ class Experiment(object):
                 raise Exception(message)
             else:
                 case_nml['case_config']['runtime_mult'] = self._runtime_mult
-                    
+
         # If the number of levels is specified, set the namelist value
         if self._levels:
             case_nml['case_config']['n_levels'] = self._levels
@@ -710,11 +713,11 @@ class Experiment(object):
         # Move executable to run dir
         if COPY_EXECUTABLE:
             logging.debug('Copying executable to run directory')
-            cmd = 'cp {0} {1}'.format(os.path.join(SCM_ROOT, SCM_BIN, EXECUTABLE_NAME), os.path.join(SCM_RUN, EXECUTABLE_NAME))
+            cmd = 'cp {0} {1}'.format(os.path.join(SCM_ROOT, SCM_BIN, "scm", "src", EXECUTABLE_NAME), os.path.join(SCM_RUN, EXECUTABLE_NAME))
             execute(cmd)
         else:
             logging.debug('Linking executable to run directory')
-            cmd = 'ln -sf {0} {1}'.format(os.path.join(SCM_ROOT, SCM_BIN, EXECUTABLE_NAME), os.path.join(SCM_RUN, EXECUTABLE_NAME))
+            cmd = 'ln -sf {0} {1}'.format(os.path.join(SCM_ROOT, SCM_BIN, "scm", "src", EXECUTABLE_NAME), os.path.join(SCM_RUN, EXECUTABLE_NAME))
             execute(cmd)
 
         #Inform user of timestep and output intervals
